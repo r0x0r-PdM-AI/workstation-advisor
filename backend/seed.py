@@ -654,6 +654,226 @@ def seed_scale_tiers(cur, workload_ids):
     print(f"  scale_tiers: {total} rows inserted")
 
 
+SCALE_TIER_PRODUCTS = [
+    # Archetype 2 — Analyst / Data Power User
+    ("Financial Modeling & Forecasting", 1, 1, "Dell Pro Max Micro"),
+    ("Financial Modeling & Forecasting", 1, 2, "Dell Pro Max Slim"),
+    ("Financial Modeling & Forecasting", 2, 1, "Dell Pro Max Slim"),
+    ("Financial Modeling & Forecasting", 2, 2, "Dell Pro Max Tower T2"),
+    ("Financial Modeling & Forecasting", 3, 1, "Dell Pro Max Tower T2"),
+    ("Financial Modeling & Forecasting", 3, 2, "Dell Precision 5860 Tower"),
+    ("Scenario Analysis & Stress Testing", 1, 1, "Dell Pro Max Micro"),
+    ("Scenario Analysis & Stress Testing", 1, 2, "Dell Pro Max Slim"),
+    ("Scenario Analysis & Stress Testing", 2, 1, "Dell Pro Max Slim"),
+    ("Scenario Analysis & Stress Testing", 2, 2, "Dell Pro Max Tower T2"),
+    ("Scenario Analysis & Stress Testing", 3, 1, "Dell Pro Max Tower T2"),
+    ("Scenario Analysis & Stress Testing", 3, 2, "Dell Precision 5860 Tower"),
+    ("Outcomes Modeling & Statistical Analysis", 1, 1, "Dell Pro Max Micro"),
+    ("Outcomes Modeling & Statistical Analysis", 1, 2, "Dell Pro Max Slim"),
+    ("Outcomes Modeling & Statistical Analysis", 2, 1, "Dell Pro Max Slim"),
+    ("Outcomes Modeling & Statistical Analysis", 2, 2, "Dell Pro Max Tower T2"),
+    ("Outcomes Modeling & Statistical Analysis", 3, 1, "Dell Pro Max Tower T2"),
+    ("Outcomes Modeling & Statistical Analysis", 3, 2, "Dell Precision 5860 Tower"),
+    ("Sales & Inventory Forecasting", 1, 1, "Dell Pro Max Micro"),
+    ("Sales & Inventory Forecasting", 1, 2, "Dell Pro Max Slim"),
+    ("Sales & Inventory Forecasting", 2, 1, "Dell Pro Max Slim"),
+    ("Sales & Inventory Forecasting", 2, 2, "Dell Pro Max Tower T2"),
+    ("Sales & Inventory Forecasting", 3, 1, "Dell Pro Max Tower T2"),
+    ("Sales & Inventory Forecasting", 3, 2, "Dell Precision 5860 Tower"),
+    ("Energy Data Analysis & Reporting", 1, 1, "Dell Pro Max Micro"),
+    ("Energy Data Analysis & Reporting", 1, 2, "Dell Pro Max Slim"),
+    ("Energy Data Analysis & Reporting", 2, 1, "Dell Pro Max Slim"),
+    ("Energy Data Analysis & Reporting", 2, 2, "Dell Pro Max Tower T2"),
+    ("Energy Data Analysis & Reporting", 3, 1, "Dell Pro Max Tower T2"),
+    ("Energy Data Analysis & Reporting", 3, 2, "Dell Precision 5860 Tower"),
+    ("BI Reporting & Dashboarding", 1, 1, "Dell Pro Max Micro"),
+    ("BI Reporting & Dashboarding", 1, 2, "Dell Pro Max Slim"),
+    ("BI Reporting & Dashboarding", 2, 1, "Dell Pro Max Slim"),
+    ("BI Reporting & Dashboarding", 2, 2, "Dell Pro Max Tower T2"),
+    ("BI Reporting & Dashboarding", 3, 1, "Dell Pro Max Tower T2"),
+    ("BI Reporting & Dashboarding", 3, 2, "Dell Precision 5860 Tower"),
+    # Archetype 3 — Software Developer / DevOps
+    ("Full-Stack Development", 1, 1, "Dell Pro Max Micro"),
+    ("Full-Stack Development", 1, 2, "Dell Pro Max Slim"),
+    ("Full-Stack Development", 2, 1, "Dell Pro Max Slim"),
+    ("Full-Stack Development", 2, 2, "Dell Pro Max Tower T2"),
+    ("Full-Stack Development", 3, 1, "Dell Pro Max Tower T2"),
+    ("Full-Stack Development", 3, 2, "Dell Precision 5860 Tower"),
+    ("Microservices & API Development", 1, 1, "Dell Pro Max Micro"),
+    ("Microservices & API Development", 1, 2, "Dell Pro Max Slim"),
+    ("Microservices & API Development", 2, 1, "Dell Pro Max Slim"),
+    ("Microservices & API Development", 2, 2, "Dell Pro Max Tower T2"),
+    ("Microservices & API Development", 3, 1, "Dell Pro Max Tower T2"),
+    ("Microservices & API Development", 3, 2, "Dell Precision 5860 Tower"),
+    ("CI/CD, IaC & Container Orchestration", 1, 1, "Dell Pro Max Slim"),
+    ("CI/CD, IaC & Container Orchestration", 1, 2, "Dell Pro Max Tower T2"),
+    ("CI/CD, IaC & Container Orchestration", 2, 1, "Dell Pro Max Tower T2"),
+    ("CI/CD, IaC & Container Orchestration", 2, 2, "Dell Precision 5860 Tower"),
+    ("CI/CD, IaC & Container Orchestration", 3, 1, "Dell Precision 5860 Tower"),
+    ("CI/CD, IaC & Container Orchestration", 3, 2, "Dell Precision 7875 Tower"),
+    ("Low-Level & Firmware Development", 1, 1, "Dell Pro Max Micro"),
+    ("Low-Level & Firmware Development", 1, 2, "Dell Pro Max Slim"),
+    ("Low-Level & Firmware Development", 2, 1, "Dell Pro Max Slim"),
+    ("Low-Level & Firmware Development", 2, 2, "Dell Pro Max Tower T2"),
+    ("Low-Level & Firmware Development", 3, 1, "Dell Pro Max Tower T2"),
+    ("Low-Level & Firmware Development", 3, 2, "Dell Precision 5860 Tower"),
+    ("Internal Tools & Automation", 1, 1, "Dell Pro Max Micro"),
+    ("Internal Tools & Automation", 1, 2, "Dell Pro Max Slim"),
+    ("Internal Tools & Automation", 2, 1, "Dell Pro Max Slim"),
+    ("Internal Tools & Automation", 2, 2, "Dell Pro Max Tower T2"),
+    ("Internal Tools & Automation", 3, 1, "Dell Pro Max Tower T2"),
+    ("Internal Tools & Automation", 3, 2, "Dell Precision 5860 Tower"),
+    # Archetype 4 — Designer (2D / Entry 3D)
+    ("Graphic Design", 1, 1, "Dell Pro Max Micro"),
+    ("Graphic Design", 1, 2, "Dell Pro Max Slim"),
+    ("Graphic Design", 2, 1, "Dell Pro Max Slim"),
+    ("Graphic Design", 2, 2, "Dell Pro Max Tower T2"),
+    ("Graphic Design", 3, 1, "Dell Pro Max Tower T2"),
+    ("Graphic Design", 3, 2, "Dell Precision 5860 Tower"),
+    ("UI/UX Design", 1, 1, "Dell Pro Max Micro"),
+    ("UI/UX Design", 1, 2, "Dell Pro Max Slim"),
+    ("UI/UX Design", 2, 1, "Dell Pro Max Slim"),
+    ("UI/UX Design", 2, 2, "Dell Pro Max Tower T2"),
+    ("UI/UX Design", 3, 1, "Dell Pro Max Tower T2"),
+    ("UI/UX Design", 3, 2, "Dell Precision 5860 Tower"),
+    ("2D Drafting & Presentation", 1, 1, "Dell Pro Max Micro"),
+    ("2D Drafting & Presentation", 1, 2, "Dell Pro Max Slim"),
+    ("2D Drafting & Presentation", 2, 1, "Dell Pro Max Slim"),
+    ("2D Drafting & Presentation", 2, 2, "Dell Pro Max Tower T2"),
+    ("2D Drafting & Presentation", 3, 1, "Dell Pro Max Tower T2"),
+    ("2D Drafting & Presentation", 3, 2, "Dell Precision 5860 Tower"),
+    ("Image Editing & Compositing", 1, 1, "Dell Pro Max Slim"),
+    ("Image Editing & Compositing", 1, 2, "Dell Pro Max Tower T2"),
+    ("Image Editing & Compositing", 2, 1, "Dell Pro Max Tower T2"),
+    ("Image Editing & Compositing", 2, 2, "Dell Precision 5860 Tower"),
+    ("Image Editing & Compositing", 3, 1, "Dell Precision 5860 Tower"),
+    ("Image Editing & Compositing", 3, 2, "Dell Precision 7875 Tower"),
+    ("Web & Digital Content Creation", 1, 1, "Dell Pro Max Micro"),
+    ("Web & Digital Content Creation", 1, 2, "Dell Pro Max Slim"),
+    ("Web & Digital Content Creation", 2, 1, "Dell Pro Max Slim"),
+    ("Web & Digital Content Creation", 2, 2, "Dell Pro Max Tower T2"),
+    ("Web & Digital Content Creation", 3, 1, "Dell Pro Max Tower T2"),
+    ("Web & Digital Content Creation", 3, 2, "Dell Precision 5860 Tower"),
+    # Archetype 5 — Media / Broadcast Professional
+    ("Live Video Production & Switching", 1, 1, "Dell Pro Max Tower T2"),
+    ("Live Video Production & Switching", 1, 2, "Dell Precision 5860 Tower"),
+    ("Live Video Production & Switching", 2, 1, "Dell Pro Max Tower T2"),
+    ("Live Video Production & Switching", 2, 2, "Dell Precision 5860 Tower"),
+    ("Live Video Production & Switching", 3, 1, "Dell Precision 5860 Tower"),
+    ("Live Video Production & Switching", 3, 2, "Dell Precision 7875 Tower"),
+    ("Real-Time Editing & Color Grading", 1, 1, "Dell Pro Max Tower T2"),
+    ("Real-Time Editing & Color Grading", 1, 2, "Dell Precision 5860 Tower"),
+    ("Real-Time Editing & Color Grading", 2, 1, "Dell Precision 5860 Tower"),
+    ("Real-Time Editing & Color Grading", 2, 2, "Dell Precision 7875 Tower"),
+    ("Real-Time Editing & Color Grading", 3, 1, "Dell Precision 7875 Tower"),
+    ("Real-Time Editing & Color Grading", 3, 2, "Dell Precision 7960 Tower"),
+    ("Real-Time Rendering (LED Volume / VP)", 1, 1, "Dell Pro Max Tower T2"),
+    ("Real-Time Rendering (LED Volume / VP)", 1, 2, "Dell Precision 5860 Tower"),
+    ("Real-Time Rendering (LED Volume / VP)", 2, 1, "Dell Precision 5860 Tower"),
+    ("Real-Time Rendering (LED Volume / VP)", 2, 2, "Dell Precision 7875 Tower"),
+    ("Real-Time Rendering (LED Volume / VP)", 3, 1, "Dell Precision 7875 Tower"),
+    ("Real-Time Rendering (LED Volume / VP)", 3, 2, "Dell Precision 7960 Tower"),
+    ("Live Sports Broadcasting", 1, 1, "Dell Pro Max Tower T2"),
+    ("Live Sports Broadcasting", 1, 2, "Dell Precision 5860 Tower"),
+    ("Live Sports Broadcasting", 2, 1, "Dell Precision 5860 Tower"),
+    ("Live Sports Broadcasting", 2, 2, "Dell Precision 7875 Tower"),
+    ("Live Sports Broadcasting", 3, 1, "Dell Precision 7875 Tower"),
+    ("Live Sports Broadcasting", 3, 2, "Dell Precision 7960 Tower"),
+    ("Event Streaming & Recording", 1, 1, "Dell Pro Max Tower T2"),
+    ("Event Streaming & Recording", 1, 2, "Dell Precision 5860 Tower"),
+    ("Event Streaming & Recording", 2, 1, "Dell Pro Max Tower T2"),
+    ("Event Streaming & Recording", 2, 2, "Dell Precision 5860 Tower"),
+    ("Event Streaming & Recording", 3, 1, "Dell Precision 5860 Tower"),
+    ("Event Streaming & Recording", 3, 2, "Dell Precision 7875 Tower"),
+    # Archetype 6 — Engineer / Creator (Advanced Compute)
+    ("3D CAD & Assembly Design", 1, 1, "Dell Pro Max Tower T2"),
+    ("3D CAD & Assembly Design", 1, 2, "Dell Precision 5860 Tower"),
+    ("3D CAD & Assembly Design", 2, 1, "Dell Precision 5860 Tower"),
+    ("3D CAD & Assembly Design", 2, 2, "Dell Precision 7875 Tower"),
+    ("3D CAD & Assembly Design", 3, 1, "Dell Precision 7875 Tower"),
+    ("3D CAD & Assembly Design", 3, 2, "Dell Precision 7960 Tower"),
+    ("FEA / Structural Simulation", 1, 1, "Dell Precision 5860 Tower"),
+    ("FEA / Structural Simulation", 1, 2, "Dell Precision 7875 Tower"),
+    ("FEA / Structural Simulation", 2, 1, "Dell Precision 7875 Tower"),
+    ("FEA / Structural Simulation", 2, 2, "Dell Precision 7960 Tower"),
+    ("FEA / Structural Simulation", 3, 1, "Dell Precision 7875 Tower"),
+    ("FEA / Structural Simulation", 3, 2, "Dell Precision 7960 Tower"),
+    ("CFD / Aerodynamic Simulation", 1, 1, "Dell Precision 5860 Tower"),
+    ("CFD / Aerodynamic Simulation", 1, 2, "Dell Precision 7875 Tower"),
+    ("CFD / Aerodynamic Simulation", 2, 1, "Dell Precision 7875 Tower"),
+    ("CFD / Aerodynamic Simulation", 2, 2, "Dell Precision 7960 Tower"),
+    ("CFD / Aerodynamic Simulation", 3, 1, "Dell Precision 7875 Tower"),
+    ("CFD / Aerodynamic Simulation", 3, 2, "Dell Precision 7960 Tower"),
+    ("Architectural Rendering & BIM", 1, 1, "Dell Pro Max Tower T2"),
+    ("Architectural Rendering & BIM", 1, 2, "Dell Precision 5860 Tower"),
+    ("Architectural Rendering & BIM", 2, 1, "Dell Precision 5860 Tower"),
+    ("Architectural Rendering & BIM", 2, 2, "Dell Precision 7875 Tower"),
+    ("Architectural Rendering & BIM", 3, 1, "Dell Precision 7875 Tower"),
+    ("Architectural Rendering & BIM", 3, 2, "Dell Precision 7960 Tower"),
+    ("3D Animation & Rendering", 1, 1, "Dell Pro Max Tower T2"),
+    ("3D Animation & Rendering", 1, 2, "Dell Precision 5860 Tower"),
+    ("3D Animation & Rendering", 2, 1, "Dell Precision 5860 Tower"),
+    ("3D Animation & Rendering", 2, 2, "Dell Precision 7875 Tower"),
+    ("3D Animation & Rendering", 3, 1, "Dell Precision 7875 Tower"),
+    ("3D Animation & Rendering", 3, 2, "Dell Precision 7960 Tower"),
+    ("Game Engine Development", 1, 1, "Dell Pro Max Tower T2"),
+    ("Game Engine Development", 1, 2, "Dell Precision 5860 Tower"),
+    ("Game Engine Development", 2, 1, "Dell Precision 5860 Tower"),
+    ("Game Engine Development", 2, 2, "Dell Precision 7875 Tower"),
+    ("Game Engine Development", 3, 1, "Dell Precision 7875 Tower"),
+    ("Game Engine Development", 3, 2, "Dell Precision 7960 Tower"),
+    ("Seismic Data Processing", 1, 1, "Dell Precision 5860 Tower"),
+    ("Seismic Data Processing", 1, 2, "Dell Precision 7875 Tower"),
+    ("Seismic Data Processing", 2, 1, "Dell Precision 7875 Tower"),
+    ("Seismic Data Processing", 2, 2, "Dell Precision 7960 Tower"),
+    ("Seismic Data Processing", 3, 1, "Dell Precision 7960 Tower"),
+    ("Seismic Data Processing", 3, 2, "Dell Precision 7875 Tower"),
+    ("GPU / CPU Hybrid Rendering", 1, 1, "Dell Precision 5860 Tower"),
+    ("GPU / CPU Hybrid Rendering", 1, 2, "Dell Precision 7875 Tower"),
+    ("GPU / CPU Hybrid Rendering", 2, 1, "Dell Precision 7875 Tower"),
+    ("GPU / CPU Hybrid Rendering", 2, 2, "Dell Precision 7960 Tower"),
+    ("GPU / CPU Hybrid Rendering", 3, 1, "Dell Precision 7875 Tower"),
+    ("GPU / CPU Hybrid Rendering", 3, 2, "Dell Precision 7960 Tower"),
+    # Archetype 7 — AI / Data Scientist / ML Engineer
+    ("Model Training & Fine-Tuning", 1, 1, "Dell Precision 7875 Tower"),
+    ("Model Training & Fine-Tuning", 1, 2, "Dell Precision 5860 Tower"),
+    ("Model Training & Fine-Tuning", 2, 1, "Dell Precision 7875 Tower"),
+    ("Model Training & Fine-Tuning", 2, 2, "Dell Precision 7960 Tower"),
+    ("Model Training & Fine-Tuning", 3, 1, "Dell Precision 7875 Tower"),
+    ("Model Training & Fine-Tuning", 3, 2, "Dell Precision 7960 Tower"),
+    ("Model Deployment & Local Inference", 1, 1, "Dell Precision 7875 Tower"),
+    ("Model Deployment & Local Inference", 1, 2, "Dell Precision 5860 Tower"),
+    ("Model Deployment & Local Inference", 2, 1, "Dell Precision 7875 Tower"),
+    ("Model Deployment & Local Inference", 2, 2, "Dell Precision 7960 Tower"),
+    ("Model Deployment & Local Inference", 3, 1, "Dell Precision 7960 Tower"),
+    ("Model Deployment & Local Inference", 3, 2, "Dell Precision 7875 Tower"),
+    ("Medical Image Analysis", 1, 1, "Dell Precision 5860 Tower"),
+    ("Medical Image Analysis", 1, 2, "Dell Precision 7875 Tower"),
+    ("Medical Image Analysis", 2, 1, "Dell Precision 7875 Tower"),
+    ("Medical Image Analysis", 2, 2, "Dell Precision 7960 Tower"),
+    ("Medical Image Analysis", 3, 1, "Dell Precision 7875 Tower"),
+    ("Medical Image Analysis", 3, 2, "Dell Precision 7960 Tower"),
+    ("Quantitative Modeling & Backtesting", 1, 1, "Dell Pro Max Slim"),
+    ("Quantitative Modeling & Backtesting", 1, 2, "Dell Pro Max Tower T2"),
+    ("Quantitative Modeling & Backtesting", 2, 1, "Dell Pro Max Tower T2"),
+    ("Quantitative Modeling & Backtesting", 2, 2, "Dell Precision 5860 Tower"),
+    ("Quantitative Modeling & Backtesting", 3, 1, "Dell Precision 7960 Tower"),
+    ("Quantitative Modeling & Backtesting", 3, 2, "Dell Precision 7875 Tower"),
+    ("Recommender Systems & Forecasting", 1, 1, "Dell Precision 5860 Tower"),
+    ("Recommender Systems & Forecasting", 1, 2, "Dell Precision 7875 Tower"),
+    ("Recommender Systems & Forecasting", 2, 1, "Dell Precision 7875 Tower"),
+    ("Recommender Systems & Forecasting", 2, 2, "Dell Precision 7960 Tower"),
+    ("Recommender Systems & Forecasting", 3, 1, "Dell Precision 7875 Tower"),
+    ("Recommender Systems & Forecasting", 3, 2, "Dell Precision 7960 Tower"),
+    ("Dataset Preparation & Feature Engineering", 1, 1, "Dell Pro Max Slim"),
+    ("Dataset Preparation & Feature Engineering", 1, 2, "Dell Pro Max Tower T2"),
+    ("Dataset Preparation & Feature Engineering", 2, 1, "Dell Pro Max Tower T2"),
+    ("Dataset Preparation & Feature Engineering", 2, 2, "Dell Precision 5860 Tower"),
+    ("Dataset Preparation & Feature Engineering", 3, 1, "Dell Precision 7960 Tower"),
+    ("Dataset Preparation & Feature Engineering", 3, 2, "Dell Precision 7875 Tower"),
+]
+
+
 def seed_products(cur):
     for p in PRODUCTS:
         cur.execute(
@@ -671,6 +891,40 @@ def seed_products(cur):
             ),
         )
     print(f"  products: {len(PRODUCTS)} rows inserted")
+
+
+def seed_scale_tier_products(cur):
+    total = 0
+    for (workload_name, scale_level, rank, product_name) in SCALE_TIER_PRODUCTS:
+        row = cur.execute(
+            """
+            SELECT st.id
+            FROM scale_tiers st
+            JOIN workloads w ON w.id = st.workload_id
+            WHERE w.name = ? AND st.scale_level = ?
+            """,
+            (workload_name, scale_level),
+        ).fetchone()
+        if row is None:
+            raise ValueError(f"No scale_tier found for workload={workload_name!r}, scale_level={scale_level}")
+        scale_tier_id = row[0]
+
+        product_row = cur.execute(
+            "SELECT id FROM products WHERE name = ?", (product_name,)
+        ).fetchone()
+        if product_row is None:
+            raise ValueError(f"No product found with name={product_name!r}")
+        product_id = product_row[0]
+
+        cur.execute(
+            """
+            INSERT OR IGNORE INTO scale_tier_products (scale_tier_id, product_id, rank)
+            VALUES (?, ?, ?)
+            """,
+            (scale_tier_id, product_id, rank),
+        )
+        total += cur.rowcount
+    print(f"  scale_tier_products: {total} rows inserted")
 
 
 def print_row_counts(conn):
@@ -696,7 +950,7 @@ def seed():
     workload_ids  = seed_workloads(cur, vertical_ids)
     seed_scale_tiers(cur, workload_ids)
     seed_products(cur)
-    # seed_scale_tier_products(cur)  <- Stage 2
+    seed_scale_tier_products(cur)
     # users: stub only, no inserts   <- Stage 3
 
     conn.commit()
