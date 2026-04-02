@@ -1,6 +1,7 @@
 PRAGMA foreign_keys = ON;
 
 DROP TABLE IF EXISTS scale_tier_products;
+DROP TABLE IF EXISTS saved_profiles;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS scale_tiers;
 DROP TABLE IF EXISTS products;
@@ -18,32 +19,36 @@ CREATE TABLE archetypes (
 
 CREATE TABLE industries (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    archetype_id INTEGER NOT NULL REFERENCES archetypes(id),
-    name TEXT NOT NULL
+    archetype_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    FOREIGN KEY (archetype_id) REFERENCES archetypes(id)
 );
 
 CREATE TABLE verticals (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    industry_id INTEGER NOT NULL REFERENCES industries(id),
-    name TEXT NOT NULL
+    industry_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    FOREIGN KEY (industry_id) REFERENCES industries(id)
 );
 
 CREATE TABLE workloads (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    vertical_id INTEGER NOT NULL REFERENCES verticals(id),
+    vertical_id INTEGER NOT NULL,
     name TEXT NOT NULL,
-    description TEXT
+    description TEXT,
+    FOREIGN KEY (vertical_id) REFERENCES verticals(id)
 );
 
 CREATE TABLE scale_tiers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    workload_id INTEGER NOT NULL REFERENCES workloads(id),
+    workload_id INTEGER NOT NULL,
     scale_level INTEGER NOT NULL CHECK (scale_level IN (1, 2, 3)),
     scale_label TEXT NOT NULL CHECK (scale_label IN ('Light', 'Standard', 'Heavy')),
     threshold_unit TEXT,
     threshold_min REAL,
     threshold_max REAL,
-    description TEXT
+    description TEXT,
+    FOREIGN KEY (workload_id) REFERENCES workloads(id)
 );
 
 CREATE TABLE products (
@@ -70,10 +75,12 @@ CREATE TABLE products (
 
 CREATE TABLE scale_tier_products (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    scale_tier_id INTEGER NOT NULL REFERENCES scale_tiers(id),
-    product_id INTEGER NOT NULL REFERENCES products(id),
+    scale_tier_id INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
     rank INTEGER NOT NULL DEFAULT 1,
-    UNIQUE (scale_tier_id, product_id)
+    UNIQUE (scale_tier_id, product_id),
+    FOREIGN KEY (scale_tier_id) REFERENCES scale_tiers(id),
+    FOREIGN KEY (product_id) REFERENCES products(id)
 );
 
 CREATE TABLE users (
@@ -81,4 +88,15 @@ CREATE TABLE users (
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE saved_profiles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    workload_id INTEGER NOT NULL,
+    scale_level INTEGER NOT NULL CHECK (scale_level IN (1, 2, 3)),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (workload_id) REFERENCES workloads(id)
 );
