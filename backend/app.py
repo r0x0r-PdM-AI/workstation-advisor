@@ -1,10 +1,34 @@
-from flask import Flask
+import os
+
+from flask import Flask, jsonify
+from flask_bcrypt import Bcrypt
+from flask_login import LoginManager
+from models.user import User
+from routes.auth import auth_bp
+from routes.profiles import profiles_bp
 from routes.recommend import recommend_bp
 
 
 def create_app():
     app = Flask(__name__)
+    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+    bcrypt = Bcrypt(app)
+    login_manager = LoginManager(app)
+
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        return jsonify({"error": "Unauthorised"}), 401
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.get_by_id(int(user_id))
+
     app.register_blueprint(recommend_bp, url_prefix="/api")
+    app.register_blueprint(auth_bp, url_prefix="/api/auth")
+    app.register_blueprint(profiles_bp, url_prefix="/api")
     return app
 
 
