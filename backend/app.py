@@ -9,14 +9,18 @@ from routes.profiles import profiles_bp
 from routes.recommend import recommend_bp
 
 
+bcrypt = Bcrypt()
+login_manager = LoginManager()
+
+
 def create_app():
     app = Flask(__name__)
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
-    bcrypt = Bcrypt(app)
-    login_manager = LoginManager(app)
+    bcrypt.init_app(app)
+    login_manager.init_app(app)
 
     @login_manager.unauthorized_handler
     def unauthorized():
