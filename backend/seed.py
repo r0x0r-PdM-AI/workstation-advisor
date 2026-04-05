@@ -928,7 +928,7 @@ def seed_scale_tier_products(cur):
 
 
 def print_row_counts(conn):
-    tables = ["archetypes", "industries", "verticals", "workloads", "scale_tiers", "products", "scale_tier_products", "users"]
+    tables = ["archetypes", "industries", "verticals", "workloads", "scale_tiers", "products", "scale_tier_products", "users", "saved_profiles"]
     print("\nRow counts:")
     for table in tables:
         (count,) = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()
