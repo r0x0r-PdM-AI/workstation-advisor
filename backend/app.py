@@ -4,13 +4,14 @@ from flask import Flask, jsonify
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from models.user import User
-from routes.auth import auth_bp
-from routes.profiles import profiles_bp
-from routes.recommend import recommend_bp
 
 
 bcrypt = Bcrypt()
 login_manager = LoginManager()
+
+from routes.auth import auth_bp
+from routes.profiles import profiles_bp
+from routes.recommend import recommend_bp
 
 
 def create_app():
