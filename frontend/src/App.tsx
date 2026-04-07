@@ -1,18 +1,9 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./context/AuthProvider";
 import NavBar from "./components/NavBar";
-
-function AdvisorPage() {
-  return <div>AdvisorPage</div>;
-}
-
-function LoginPage() {
-  return <div>LoginPage</div>;
-}
-
-function RegisterPage() {
-  return <div>RegisterPage</div>;
-}
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import AdvisorPage from "./pages/AdvisorPage";
 
 function App() {
   return (
