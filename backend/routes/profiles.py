@@ -94,3 +94,58 @@ def list_profiles():
 		for row in rows
 	]
 	return jsonify(profiles), 200
+
+
+@profiles_bp.patch("/profiles/<int:profile_id>")
+@login_required
+def update_profile(profile_id):
+	data = request.get_json(silent=True) or {}
+	name = data.get("name")
+
+	if name is None or name == "":
+		return jsonify({"error": "Name is required"}), 400
+
+	conn = get_db()
+	try:
+		profile = conn.execute(
+			"SELECT id, user_id FROM saved_profiles WHERE id = ?",
+			(profile_id,),
+		).fetchone()
+		if profile is None:
+			return jsonify({"error": "Profile not found"}), 404
+
+		if profile["user_id"] != current_user.id:
+			return jsonify({"error": "Forbidden"}), 403
+
+		conn.execute(
+			"UPDATE saved_profiles SET name = ? WHERE id = ?",
+			(name, profile_id),
+		)
+		conn.commit()
+	finally:
+		conn.close()
+
+	return jsonify({"message": "Profile updated"}), 200
+
+
+@profiles_bp.delete("/profiles/<int:profile_id>")
+@login_required
+def delete_profile(profile_id):
+	conn = get_db()
+	try:
+		profile = conn.execute(
+			"SELECT id, user_id FROM saved_profiles WHERE id = ?",
+			(profile_id,),
+		).fetchone()
+		if profile is None:
+			return jsonify({"error": "Profile not found"}), 404
+
+		if profile["user_id"] != current_user.id:
+			return jsonify({"error": "Forbidden"}), 403
+
+		conn.execute("DELETE FROM saved_profiles WHERE id = ?", (profile_id,))
+		conn.commit()
+	finally:
+		conn.close()
+
+	return jsonify({"message": "Profile deleted"}), 200

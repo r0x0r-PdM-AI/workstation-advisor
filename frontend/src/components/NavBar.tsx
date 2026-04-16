@@ -28,6 +28,9 @@ export default function NavBar() {
         )}
         {!loading && user !== null && (
           <>
+            <Link to="/dashboard" className="hover:text-gray-300">
+              Dashboard
+            </Link>
             <span className="text-gray-300">{user.email}</span>
             <button
               onClick={handleLogout}
