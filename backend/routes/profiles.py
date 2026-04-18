@@ -23,29 +23,34 @@ def create_profile():
 
 	conn = get_db()
 	try:
-		workload = conn.execute(
-			"SELECT id FROM workloads WHERE id = ?",
+		cur = conn.cursor()
+		cur.execute(
+			"SELECT id FROM workloads WHERE id = %s",
 			(workload_id,),
-		).fetchone()
+		)
+		workload = cur.fetchone()
 		if workload is None:
 			return jsonify({"error": "Workload not found"}), 404
 
-		cursor = conn.execute(
+		cur.execute(
 			(
 				"INSERT INTO saved_profiles (user_id, name, workload_id, scale_level) "
-				"VALUES (?, ?, ?, ?)"
+				"VALUES (%s, %s, %s, %s) RETURNING id"
 			),
 			(current_user.id, name, workload_id, scale_level),
 		)
 		conn.commit()
+		profile_id = cur.fetchone()["id"]
 
-		profile = conn.execute(
+		cur2 = conn.cursor()
+		cur2.execute(
 			(
 				"SELECT id, name, workload_id, scale_level, created_at "
-				"FROM saved_profiles WHERE id = ?"
+				"FROM saved_profiles WHERE id = %s"
 			),
-			(cursor.lastrowid,),
-		).fetchone()
+			(profile_id,),
+		)
+		profile = cur2.fetchone()
 	finally:
 		conn.close()
 
@@ -65,7 +70,8 @@ def create_profile():
 def list_profiles():
 	conn = get_db()
 	try:
-		rows = conn.execute(
+		cur = conn.cursor()
+		cur.execute(
 			(
 				"SELECT sp.id, sp.name, sp.workload_id, w.name AS workload_name, "
 				"sp.scale_level, st.scale_label, sp.created_at "
@@ -73,11 +79,12 @@ def list_profiles():
 				"JOIN workloads w ON sp.workload_id = w.id "
 				"JOIN scale_tiers st ON st.workload_id = sp.workload_id "
 				"AND st.scale_level = sp.scale_level "
-				"WHERE sp.user_id = ? "
+				"WHERE sp.user_id = %s "
 				"ORDER BY sp.created_at DESC"
 			),
 			(current_user.id,),
-		).fetchall()
+		)
+		rows = cur.fetchall()
 	finally:
 		conn.close()
 
@@ -107,18 +114,20 @@ def update_profile(profile_id):
 
 	conn = get_db()
 	try:
-		profile = conn.execute(
-			"SELECT id, user_id FROM saved_profiles WHERE id = ?",
+		cur = conn.cursor()
+		cur.execute(
+			"SELECT id, user_id FROM saved_profiles WHERE id = %s",
 			(profile_id,),
-		).fetchone()
+		)
+		profile = cur.fetchone()
 		if profile is None:
 			return jsonify({"error": "Profile not found"}), 404
 
 		if profile["user_id"] != current_user.id:
 			return jsonify({"error": "Forbidden"}), 403
 
-		conn.execute(
-			"UPDATE saved_profiles SET name = ? WHERE id = ?",
+		cur.execute(
+			"UPDATE saved_profiles SET name = %s WHERE id = %s",
 			(name, profile_id),
 		)
 		conn.commit()
@@ -133,17 +142,19 @@ def update_profile(profile_id):
 def delete_profile(profile_id):
 	conn = get_db()
 	try:
-		profile = conn.execute(
-			"SELECT id, user_id FROM saved_profiles WHERE id = ?",
+		cur = conn.cursor()
+		cur.execute(
+			"SELECT id, user_id FROM saved_profiles WHERE id = %s",
 			(profile_id,),
-		).fetchone()
+		)
+		profile = cur.fetchone()
 		if profile is None:
 			return jsonify({"error": "Profile not found"}), 404
 
 		if profile["user_id"] != current_user.id:
 			return jsonify({"error": "Forbidden"}), 403
 
-		conn.execute("DELETE FROM saved_profiles WHERE id = ?", (profile_id,))
+		cur.execute("DELETE FROM saved_profiles WHERE id = %s", (profile_id,))
 		conn.commit()
 	finally:
 		conn.close()

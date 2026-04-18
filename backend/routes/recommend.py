@@ -23,16 +23,19 @@ def recommend():
 
     conn = get_db()
     try:
-        workload = conn.execute(
-            "SELECT id, name FROM workloads WHERE id = ?", (workload_id,)
-        ).fetchone()
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT id, name FROM workloads WHERE id = %s", (workload_id,)
+        )
+        workload = cur.fetchone()
         if workload is None:
             return jsonify({"error": f"workload_id {workload_id} not found"}), 404
 
-        scale_tier = conn.execute(
-            "SELECT scale_label FROM scale_tiers WHERE workload_id = ? AND scale_level = ?",
+        cur.execute(
+            "SELECT scale_label FROM scale_tiers WHERE workload_id = %s AND scale_level = %s",
             (workload_id, scale_level),
-        ).fetchone()
+        )
+        scale_tier = cur.fetchone()
         scale_label = scale_tier["scale_label"] if scale_tier else None
 
         results = get_recommendations(conn, workload_id, scale_level)
@@ -70,18 +73,15 @@ def recommend():
 def taxonomy():
     conn = get_db()
     try:
-        archetypes = conn.execute(
-            "SELECT id, name, is_mobile_primary FROM archetypes ORDER BY id"
-        ).fetchall()
-        industries = conn.execute(
-            "SELECT id, archetype_id, name FROM industries ORDER BY id"
-        ).fetchall()
-        verticals = conn.execute(
-            "SELECT id, industry_id, name FROM verticals ORDER BY id"
-        ).fetchall()
-        workloads = conn.execute(
-            "SELECT id, vertical_id, name FROM workloads ORDER BY id"
-        ).fetchall()
+        cur = conn.cursor()
+        cur.execute("SELECT id, name, is_mobile_primary FROM archetypes ORDER BY id")
+        archetypes = cur.fetchall()
+        cur.execute("SELECT id, archetype_id, name FROM industries ORDER BY id")
+        industries = cur.fetchall()
+        cur.execute("SELECT id, industry_id, name FROM verticals ORDER BY id")
+        verticals = cur.fetchall()
+        cur.execute("SELECT id, vertical_id, name FROM workloads ORDER BY id")
+        workloads = cur.fetchall()
 
         work_by_vertical = {}
         for w in workloads:
@@ -128,7 +128,9 @@ def taxonomy():
 def products():
     conn = get_db()
     try:
-        rows = conn.execute("SELECT * FROM products ORDER BY id ASC").fetchall()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM products ORDER BY id ASC")
+        rows = cur.fetchall()
         return jsonify([dict(r) for r in rows]), 200
     finally:
         conn.close()

@@ -1,5 +1,5 @@
-import sqlite3
-import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 DB_PATH = "workstation_advisor.db"
 SCHEMA_PATH = "schema.sql"
@@ -573,20 +573,15 @@ PRODUCTS = [
 ]
 
 
-def run_schema(conn):
-    with open(SCHEMA_PATH, "r") as f:
-        conn.executescript(f.read())
-    print("Schema applied.")
-
-
 def seed_archetypes(cur):
     archetype_ids = {}
     for a in ARCHETYPES:
         cur.execute(
-            "INSERT INTO archetypes (name, is_mobile_primary) VALUES (?, ?)",
+            "INSERT INTO archetypes (name, is_mobile_primary) VALUES (%s, %s) RETURNING id",
             (a["name"], a["is_mobile_primary"]),
         )
-        archetype_ids[a["name"]] = cur.lastrowid
+        row = cur.fetchone()
+        archetype_ids[a["name"]] = row["id"]
     print(f"  archetypes: {len(archetype_ids)} rows inserted")
     return archetype_ids
 
@@ -598,10 +593,11 @@ def seed_industries(cur, archetype_ids):
         archetype_id = archetype_ids[archetype_name]
         for name in names:
             cur.execute(
-                "INSERT INTO industries (archetype_id, name) VALUES (?, ?)",
+                "INSERT INTO industries (archetype_id, name) VALUES (%s, %s) RETURNING id",
                 (archetype_id, name),
             )
-            industry_ids[(archetype_name, name)] = cur.lastrowid
+            row = cur.fetchone()
+            industry_ids[(archetype_name, name)] = row["id"]
             total += 1
     print(f"  industries: {total} rows inserted")
     return industry_ids
@@ -614,10 +610,11 @@ def seed_verticals(cur, industry_ids):
         industry_id = industry_ids[(archetype_name, industry_name)]
         for name in names:
             cur.execute(
-                "INSERT INTO verticals (industry_id, name) VALUES (?, ?)",
+                "INSERT INTO verticals (industry_id, name) VALUES (%s, %s) RETURNING id",
                 (industry_id, name),
             )
-            vertical_ids[(archetype_name, name)] = cur.lastrowid
+            row = cur.fetchone()
+            vertical_ids[(archetype_name, name)] = row["id"]
             total += 1
     print(f"  verticals: {total} rows inserted")
     return vertical_ids
@@ -630,10 +627,11 @@ def seed_workloads(cur, vertical_ids):
         vertical_id = vertical_ids[(archetype_name, vertical_name)]
         for name in names:
             cur.execute(
-                "INSERT INTO workloads (vertical_id, name) VALUES (?, ?)",
+                "INSERT INTO workloads (vertical_id, name) VALUES (%s, %s) RETURNING id",
                 (vertical_id, name),
             )
-            workload_ids[name] = cur.lastrowid
+            row = cur.fetchone()
+            workload_ids[name] = row["id"]
             total += 1
     print(f"  workloads: {total} rows inserted")
     return workload_ids
@@ -647,9 +645,10 @@ def seed_scale_tiers(cur, workload_ids):
             cur.execute(
                 """INSERT INTO scale_tiers
                    (workload_id, scale_level, scale_label, threshold_unit, threshold_min, threshold_max, description)
-                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                   VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id""",
                 (workload_id, scale_level, scale_label, threshold_unit, threshold_min, threshold_max, description),
             )
+            cur.fetchone()
             total += 1
     print(f"  scale_tiers: {total} rows inserted")
 
@@ -881,7 +880,7 @@ def seed_products(cur):
                (name, brand, form_factor, max_cpu_cores, max_cpu_tdp_watts, max_ram_gb, ram_slots,
                 max_gpu_vram_gb, gpu_vram_range, supports_dual_gpu, max_storage_nvme_tb, max_psu_watts,
                 isv_certified, ecc_memory, os_support, recommended_scale_min, recommended_scale_max, notes)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id""",
             (
                 p["name"], p["brand"], p["form_factor"], p["max_cpu_cores"], p["max_cpu_tdp_watts"],
                 p["max_ram_gb"], p["ram_slots"], p["max_gpu_vram_gb"], p["gpu_vram_range"],
@@ -890,58 +889,64 @@ def seed_products(cur):
                 p["recommended_scale_min"], p["recommended_scale_max"], p["notes"],
             ),
         )
+        cur.fetchone()
     print(f"  products: {len(PRODUCTS)} rows inserted")
 
 
 def seed_scale_tier_products(cur):
     total = 0
     for (workload_name, scale_level, rank, product_name) in SCALE_TIER_PRODUCTS:
-        row = cur.execute(
+        cur.execute(
             """
             SELECT st.id
             FROM scale_tiers st
             JOIN workloads w ON w.id = st.workload_id
-            WHERE w.name = ? AND st.scale_level = ?
+            WHERE w.name = %s AND st.scale_level = %s
             """,
             (workload_name, scale_level),
-        ).fetchone()
+        )
+        row = cur.fetchone()
         if row is None:
             raise ValueError(f"No scale_tier found for workload={workload_name!r}, scale_level={scale_level}")
-        scale_tier_id = row[0]
+        scale_tier_id = row["id"]
 
-        product_row = cur.execute(
-            "SELECT id FROM products WHERE name = ?", (product_name,)
-        ).fetchone()
+        cur.execute(
+            "SELECT id FROM products WHERE name = %s", (product_name,)
+        )
+        product_row = cur.fetchone()
         if product_row is None:
             raise ValueError(f"No product found with name={product_name!r}")
-        product_id = product_row[0]
+        product_id = product_row["id"]
 
         cur.execute(
             """
-            INSERT OR IGNORE INTO scale_tier_products (scale_tier_id, product_id, rank)
-            VALUES (?, ?, ?)
+            INSERT INTO scale_tier_products (scale_tier_id, product_id, rank)
+            VALUES (%s, %s, %s)
+            ON CONFLICT DO NOTHING
             """,
             (scale_tier_id, product_id, rank),
         )
-        total += cur.rowcount
+        total += 1
     print(f"  scale_tier_products: {total} rows inserted")
 
 
 def print_row_counts(conn):
     tables = ["archetypes", "industries", "verticals", "workloads", "scale_tiers", "products", "scale_tier_products", "users", "saved_profiles"]
     print("\nRow counts:")
+    cur = conn.cursor()
     for table in tables:
-        (count,) = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()
+        cur.execute(f"SELECT COUNT(*) AS count FROM {table}")
+        row = cur.fetchone()
+        count = row["count"]
         print(f"  {table:<24} {count}")
 
 
 def seed():
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute("PRAGMA foreign_keys = ON")
+    import os
+    from dotenv import load_dotenv
+    load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '.flaskenv'))
+    conn = psycopg2.connect(os.environ["DATABASE_URL"], cursor_factory=RealDictCursor)
     cur = conn.cursor()
-
-    print("Running schema...")
-    run_schema(conn)
 
     print("\nSeeding tables...")
     archetype_ids = seed_archetypes(cur)

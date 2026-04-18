@@ -1,11 +1,10 @@
 import os
-import sqlite3
-
-DB_PATH = os.path.join(os.path.dirname(__file__), "workstation_advisor.db")
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 
 def get_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    return conn
+    return psycopg2.connect(
+        os.environ["DATABASE_URL"],
+        cursor_factory=RealDictCursor,
+    )

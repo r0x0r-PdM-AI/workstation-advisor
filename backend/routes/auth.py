@@ -4,7 +4,7 @@ from flask_login import current_user, login_required, login_user, logout_user
 from app import bcrypt
 from models.user import User
 
-from sqlite3 import IntegrityError
+from psycopg2 import errors as pg_errors
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -27,7 +27,7 @@ def register():
 	password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
 	try:
 		User.create(email, password_hash)
-	except IntegrityError:
+	except pg_errors.UniqueViolation:
 		return jsonify({"error": "Email already registered"}), 400
 	return jsonify({"message": "User registered successfully"}), 201
 

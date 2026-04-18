@@ -8,20 +8,22 @@ from db import get_db
 
 
 class User(UserMixin):
-    def __init__(self, id: int, email: str, password_hash: str, created_at: str) -> None:
+    def __init__(self, id: int, email: str, password_hash: str) -> None:
         self.id = id
         self.email = email
         self.password_hash = password_hash
-        self.created_at = created_at
+        
 
     @staticmethod
     def get_by_id(user_id: int) -> Optional["User"]:
         conn = get_db()
         try:
-            row = conn.execute(
-                "SELECT id, email, password_hash, created_at FROM users WHERE id = ?",
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT id, email, password_hash FROM users WHERE id = %s",
                 (user_id,),
-            ).fetchone()
+            )
+            row = cur.fetchone()
         finally:
             conn.close()
 
@@ -29,20 +31,21 @@ class User(UserMixin):
             return None
 
         return User(
-            id=row["id"],
-            email=row["email"],
-            password_hash=row["password_hash"],
-            created_at=row["created_at"],
+            id=row["id"],  # type: ignore[index]
+            email=row["email"],  # type: ignore[index]
+            password_hash=row["password_hash"],  # type: ignore[index]
         )
 
     @staticmethod
     def get_by_email(email: str) -> Optional["User"]:
         conn = get_db()
         try:
-            row = conn.execute(
-                "SELECT id, email, password_hash, created_at FROM users WHERE email = ?",
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT id, email, password_hash FROM users WHERE email = %s",
                 (email,),
-            ).fetchone()
+            )
+            row = cur.fetchone()
         finally:
             conn.close()
 
@@ -50,22 +53,22 @@ class User(UserMixin):
             return None
 
         return User(
-            id=row["id"],
-            email=row["email"],
-            password_hash=row["password_hash"],
-            created_at=row["created_at"],
+            id=row["id"],  # type: ignore[index]
+            email=row["email"],  # type: ignore[index]
+            password_hash=row["password_hash"],  # type: ignore[index]
         )
 
     @staticmethod
     def create(email: str, password_hash: str) -> "User":
         conn = get_db()
         try:
-            cursor = conn.execute(
-                "INSERT INTO users (email, password_hash) VALUES (?, ?)",
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO users (email, password_hash) VALUES (%s, %s) RETURNING id",
                 (email, password_hash),
             )
             conn.commit()
-            user_id = cursor.lastrowid
+            user_id = cur.fetchone()["id"]  # type: ignore[index]
         finally:
             conn.close()
 
