@@ -17,6 +17,8 @@ login_manager = LoginManager()
 from routes.auth import auth_bp
 from routes.profiles import profiles_bp
 from routes.recommend import recommend_bp
+from routes.taxonomy import taxonomy_bp
+from routes.products import products_bp
 
 
 def create_app():
@@ -39,6 +41,8 @@ def create_app():
         return User.get_by_id(int(user_id))
 
     app.register_blueprint(recommend_bp, url_prefix="/api")
+    app.register_blueprint(taxonomy_bp, url_prefix="/api")
+    app.register_blueprint(products_bp, url_prefix="/api")
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(profiles_bp, url_prefix="/api")
     return app
