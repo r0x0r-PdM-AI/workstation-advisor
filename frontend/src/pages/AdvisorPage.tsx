@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../api/client";
+import { naturalLanguageRecommend } from "../api/recommend";
 import { useAuth } from "../context/useAuth";
 
 type Workload = { id: number; name: string };
@@ -22,6 +23,7 @@ type Recommendation = {
   form_factor: string;
   notes: string;
   rank: number;
+  explanation?: string;
 };
 
 type RecommendationResponse = {
@@ -31,11 +33,24 @@ type RecommendationResponse = {
   workload: string;
 };
 
+type NLRecommendationResponse = {
+  recommendations: Recommendation[];
+  matched_workload: string;
+  workload_id: number;
+  scale_level: number;
+};
+
 const SCALE_OPTIONS = [
   { id: 1, name: "Starter" },
   { id: 2, name: "Professional" },
   { id: 3, name: "Enterprise" },
 ];
+
+const SCALE_LABELS: Record<number, string> = {
+  1: "Starter",
+  2: "Professional",
+  3: "Enterprise",
+};
 
 const STEP_NAMES = ["Archetype", "Industry", "Vertical", "Workload", "Scale"];
 
@@ -51,6 +66,13 @@ export default function AdvisorPage() {
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<"nl" | "stepper">("nl");
+  const [nlDescription, setNlDescription] = useState("");
+  const [nlLoading, setNlLoading] = useState(false);
+  const [nlError, setNlError] = useState<string | null>(null);
+  const [matchedWorkload, setMatchedWorkload] = useState<string | null>(null);
+  const [nlWorkloadId, setNlWorkloadId] = useState<number | null>(null);
+  const [nlScaleLevel, setNlScaleLevel] = useState<number | null>(null);
 
   useEffect(() => {
     apiFetch("/api/taxonomy")
@@ -58,6 +80,29 @@ export default function AdvisorPage() {
       .then((data) => setTaxonomy(data))
       .catch(() => setError("Failed to load taxonomy"));
   }, []);
+
+  async function handleNLSubmit() {
+    if (!nlDescription.trim()) return;
+    setNlLoading(true);
+    setNlError(null);
+    try {
+      const data: NLRecommendationResponse =
+        await naturalLanguageRecommend(nlDescription);
+      setRecommendations(data.recommendations);
+      setMatchedWorkload(data.matched_workload);
+      setNlWorkloadId(data.workload_id);
+      setNlScaleLevel(data.scale_level);
+      setProfileName(
+        `${data.matched_workload} — ${SCALE_LABELS[data.scale_level] ?? data.scale_level}`
+      );
+      setSaveStatus("idle");
+      setResponseMessage(null);
+    } catch (err) {
+      setNlError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setNlLoading(false);
+    }
+  }
 
   async function fetchRecommendations(scaleLevel: number) {
     if (!selections.workload) return;
@@ -85,7 +130,9 @@ export default function AdvisorPage() {
   }
 
   async function handleSaveProfile() {
-    if (!selections.workload || selections.scale_level === undefined) return;
+    const workloadId = selections.workload?.id ?? nlWorkloadId;
+    const scaleLevel = selections.scale_level ?? nlScaleLevel;
+    if (!workloadId || scaleLevel === undefined || scaleLevel === null) return;
     setSaveStatus("saving");
     try {
       const res = await apiFetch("/api/profiles", {
@@ -93,8 +140,8 @@ export default function AdvisorPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: profileName,
-          workload_id: selections.workload.id,
-          scale_level: selections.scale_level,
+          workload_id: workloadId,
+          scale_level: scaleLevel,
         }),
       });
       setSaveStatus(res.ok ? "saved" : "error");
@@ -139,6 +186,12 @@ export default function AdvisorPage() {
       setResponseMessage(null);
       setSelections({});
       setStep(1);
+      setMatchedWorkload(null);
+      setNlWorkloadId(null);
+      setNlScaleLevel(null);
+      setNlDescription("");
+      setNlError(null);
+      setMode("nl");
     } else {
       setStep((s) => s - 1);
     }
@@ -191,6 +244,16 @@ export default function AdvisorPage() {
           <h2 className="text-white text-2xl font-semibold mb-6">
             Recommended Workstations
           </h2>
+          {matchedWorkload && (
+            <p className="text-gray-400 text-sm mb-2">
+              Matched to:{" "}
+              <span className="text-blue-400 font-medium">{matchedWorkload}</span>
+              {" · "}
+              <span className="text-gray-400">
+                {SCALE_LABELS[nlScaleLevel ?? 0] ?? ""}
+              </span>
+            </p>
+          )}
           {recommendations.length === 0 ? (
             <div className="bg-gray-800 text-gray-300 rounded p-4">
               {responseMessage}
@@ -209,6 +272,9 @@ export default function AdvisorPage() {
                 </div>
                 <p className="text-gray-400 text-sm mb-2">{rec.form_factor}</p>
                 <p className="text-gray-300">{rec.notes}</p>
+                {rec.explanation && (
+                  <p className="text-blue-300 text-sm mt-3 italic">{rec.explanation}</p>
+                )}
               </div>
             ))}
           </div>
@@ -253,39 +319,84 @@ export default function AdvisorPage() {
   return (
     <div className="min-h-screen bg-gray-950 px-4 py-10">
       <div className="max-w-xl mx-auto">
-        <p className="text-gray-400 text-sm mb-2">
-          Step {step} of 5 — {STEP_NAMES[step - 1]}
-        </p>
-        <div className="w-full bg-gray-800 rounded-full h-1.5 mb-6">
-          <div
-            className="bg-blue-500 h-1.5 rounded-full transition-all"
-            style={{ width: `${(step / 5) * 100}%` }}
-          />
-        </div>
-
-        {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
-
-        <div className="flex flex-col gap-3">
-          {getStepOptions().map((option) => (
+        {mode === "nl" ? (
+          <div>
+            <h1 className="text-white text-3xl font-bold mb-2">
+              Dell Workstation Advisor
+            </h1>
+            <p className="text-gray-400 text-lg mb-6">
+              Describe your work and we'll recommend the right workstation
+            </p>
+            <textarea
+              value={nlDescription}
+              onChange={(e) => setNlDescription(e.target.value)}
+              placeholder="e.g. I'm a mechanical engineer running FEA simulations for a mid-sized automotive team..."
+              rows={4}
+              className="w-full bg-gray-800 border border-gray-600 rounded px-4 py-3 text-white focus:outline-none focus:border-blue-500 resize-none"
+            />
             <button
-              key={option.id}
-              onClick={() => handleCardClick(option)}
-              className={`bg-gray-800 hover:bg-gray-700 text-white rounded p-4 w-full text-left cursor-pointer transition-colors ${
-                selectedId === option.id ? "ring-2 ring-blue-500" : ""
-              }`}
+              onClick={handleNLSubmit}
+              disabled={!nlDescription.trim() || nlLoading}
+              className="mt-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2 px-6 rounded cursor-pointer"
             >
-              {option.name}
+              {nlLoading ? "Finding..." : "Find My Workstation"}
             </button>
-          ))}
-        </div>
+            {nlError && <p className="text-red-400 text-sm mt-3">{nlError}</p>}
+            <p className="text-gray-400 text-sm mt-6">
+              Prefer to browse by category?{" "}
+              <button
+                onClick={() => setMode("stepper")}
+                className="text-blue-400 hover:text-blue-300 cursor-pointer"
+              >
+                Use the step-by-step guide →
+              </button>
+            </p>
+          </div>
+        ) : (
+          <div>
+            <p className="text-gray-400 text-sm mb-3">
+              <button
+                onClick={() => setMode("nl")}
+                className="text-blue-400 hover:text-blue-300 cursor-pointer"
+              >
+                ← Describe your needs instead
+              </button>
+            </p>
+            <p className="text-gray-400 text-sm mb-2">
+              Step {step} of 5 — {STEP_NAMES[step - 1]}
+            </p>
+            <div className="w-full bg-gray-800 rounded-full h-1.5 mb-6">
+              <div
+                className="bg-blue-500 h-1.5 rounded-full transition-all"
+                style={{ width: `${(step / 5) * 100}%` }}
+              />
+            </div>
 
-        {step > 1 && (
-          <button
-            onClick={handleBack}
-            className="mt-6 text-gray-400 hover:text-white text-sm cursor-pointer"
-          >
-            ← Back
-          </button>
+            {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+
+            <div className="flex flex-col gap-3">
+              {getStepOptions().map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => handleCardClick(option)}
+                  className={`bg-gray-800 hover:bg-gray-700 text-white rounded p-4 w-full text-left cursor-pointer transition-colors ${
+                    selectedId === option.id ? "ring-2 ring-blue-500" : ""
+                  }`}
+                >
+                  {option.name}
+                </button>
+              ))}
+            </div>
+
+            {step > 1 && (
+              <button
+                onClick={handleBack}
+                className="mt-6 text-gray-400 hover:text-white text-sm cursor-pointer"
+              >
+                ← Back
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>

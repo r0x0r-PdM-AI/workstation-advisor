@@ -251,6 +251,7 @@ def recommend_natural():
         }
 
         return jsonify({
+            "workload_id": workload_id,
             "matched_workload": matched_workload_name,
             "scale_level": scale_level,
             "recommendations": [
