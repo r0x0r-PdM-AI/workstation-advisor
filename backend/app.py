@@ -3,11 +3,14 @@ import os
 from flask import Flask, jsonify
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flask_login import LoginManager
 from models.user import User
 
 
 bcrypt = Bcrypt()
+limiter = Limiter(key_func=get_remote_address, default_limits=["200 per day"])
 login_manager = LoginManager()
 
 # Blueprint imports follow extension declarations to avoid circular import
@@ -24,6 +27,7 @@ def create_app():
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
     bcrypt.init_app(app)
+    limiter.init_app(app)
     login_manager.init_app(app)
 
     @login_manager.unauthorized_handler
