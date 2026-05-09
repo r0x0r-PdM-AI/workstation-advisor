@@ -14,3 +14,4 @@ psycopg2-binary==2.9.11
 alembic==1.18.4
 anthropic
 Flask-Limiter
+gunicorn
