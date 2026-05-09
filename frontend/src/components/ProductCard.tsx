@@ -19,7 +19,7 @@ export default function ProductCard({
     <div className="rounded-2xl border border-gray-800 bg-gray-900 p-5 text-white sm:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <h3 className="break-words text-base font-semibold leading-6 tracking-tight text-white sm:text-lg sm:leading-7">
+          <h3 className="wrap-break-word text-base font-semibold leading-6 tracking-tight text-white sm:text-lg sm:leading-7">
             {product} — {brand}
           </h3>
           <p className="mt-1 text-sm leading-5 text-gray-400">
