@@ -226,7 +226,7 @@ export default function AdvisorPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-950 px-4">
+      <div className="flex items-center justify-center bg-gray-950 px-4">
         <p className="text-sm text-gray-400">Loading recommendations…</p>
       </div>
     );
@@ -234,7 +234,7 @@ export default function AdvisorPage() {
 
   if (recommendations) {
     return (
-      <div className="min-h-screen bg-gray-950 px-4 py-10 sm:py-12">
+      <div className=" bg-gray-950 px-4 py-10 sm:py-12">
         <div className="mx-auto max-w-2xl">
           <button
             onClick={handleBack}
@@ -319,7 +319,7 @@ export default function AdvisorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 px-4 py-10 sm:py-12">
+    <div className="bg-gray-950 px-4 py-10 sm:py-12">
       <div className="mx-auto max-w-xl">
         {mode === "nl" ? (
           <div>

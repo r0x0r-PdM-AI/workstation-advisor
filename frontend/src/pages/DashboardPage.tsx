@@ -92,7 +92,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-950 px-4">
+      <div className="flex items-center justify-center bg-gray-950 px-4">
         <p className="text-sm text-gray-400">Loading saved profiles…</p>
       </div>
     );
