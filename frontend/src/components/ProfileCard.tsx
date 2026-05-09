@@ -40,7 +40,7 @@ export default function ProfileCard({ profile, onRename, onDelete }: ProfileCard
   }
 
   return (
-    <div className="bg-gray-900 rounded-lg border border-gray-800 p-4 flex items-start justify-between gap-3">
+    <div className="flex items-start justify-between gap-3 rounded-2xl border border-gray-800 bg-gray-900 p-5 sm:p-6">
       <div className="min-w-0 flex-1">
         {isEditing ? (
           <input
@@ -65,24 +65,26 @@ export default function ProfileCard({ profile, onRename, onDelete }: ProfileCard
                 handleCancel();
               }
             }}
-            className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1 text-white focus:outline-none focus:border-blue-500"
+            className="w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-white outline-none transition focus:border-[#0076CE] focus:ring-2 focus:ring-[#0076CE]/20 sm:text-base"
           />
         ) : (
-          <h3 className="font-semibold text-white truncate">{profile.name}</h3>
+          <h3 className="truncate text-sm font-semibold text-white sm:text-base">
+            {profile.name}
+          </h3>
         )}
-        <p className="text-sm text-gray-400 mt-1 truncate">
+        <p className="mt-1 truncate text-sm text-gray-400">
           {profile.workload_name} · {profile.scale_label}
         </p>
       </div>
 
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex shrink-0 items-center gap-2">
         <button
           type="button"
           onClick={() => {
             setDraftName(profile.name);
             setIsEditing(true);
           }}
-          className="p-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded cursor-pointer"
+          className="cursor-pointer rounded-lg p-2 text-gray-300 transition hover:bg-gray-800 hover:text-white focus:outline-none focus:ring-2 focus:ring-[#0076CE]/20"
           aria-label="Rename profile"
           title="Rename"
         >
@@ -94,7 +96,7 @@ export default function ProfileCard({ profile, onRename, onDelete }: ProfileCard
         <button
           type="button"
           onClick={handleDelete}
-          className="p-2 text-red-300 hover:text-red-200 hover:bg-gray-800 rounded cursor-pointer"
+          className="cursor-pointer rounded-lg p-2 text-red-300 transition hover:bg-gray-800 hover:text-red-200 focus:outline-none focus:ring-2 focus:ring-red-900/40"
           aria-label="Delete profile"
           title="Delete"
         >

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiFetch } from "../api/client";
+import ProductCard from "../components/ProductCard";
 import { naturalLanguageRecommend } from "../api/recommend";
 import { useAuth } from "../context/useAuth";
 
@@ -225,86 +226,87 @@ export default function AdvisorPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <p className="text-white text-lg">Loading recommendations...</p>
+      <div className="flex min-h-screen items-center justify-center bg-gray-950 px-4">
+        <p className="text-sm text-gray-400">Loading recommendations…</p>
       </div>
     );
   }
 
   if (recommendations) {
     return (
-      <div className="min-h-screen bg-gray-950 px-4 py-10">
-        <div className="max-w-2xl mx-auto">
+      <div className="min-h-screen bg-gray-950 px-4 py-10 sm:py-12">
+        <div className="mx-auto max-w-2xl">
           <button
             onClick={handleBack}
-            className="text-gray-400 hover:text-white mb-6 text-sm cursor-pointer"
+            className="mb-6 cursor-pointer text-sm text-gray-400 transition hover:text-white"
           >
             ← Start Over
           </button>
-          <h2 className="text-white text-2xl font-semibold mb-6">
+          <h2 className="mb-6 text-2xl font-semibold tracking-tight text-white">
             Recommended Workstations
           </h2>
           {matchedWorkload && (
-            <p className="text-gray-400 text-sm mb-2">
-              Matched to:{" "}
-              <span className="text-blue-400 font-medium">{matchedWorkload}</span>
-              {" · "}
-              <span className="text-gray-400">
-                {SCALE_LABELS[nlScaleLevel ?? 0] ?? ""}
-              </span>
-            </p>
+            <div className="mb-4 inline-flex max-w-full flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-gray-800 bg-gray-900 px-3 py-2 text-sm text-gray-400">
+              <span>Matched to:</span>
+              <span className="font-medium text-white">{matchedWorkload}</span>
+              <span className="text-gray-600">·</span>
+              <span>{SCALE_LABELS[nlScaleLevel ?? 0] ?? ""}</span>
+            </div>
           )}
           {recommendations.length === 0 ? (
-            <div className="bg-gray-800 text-gray-300 rounded p-4">
+            <div className="rounded-2xl border border-gray-800 bg-gray-900 px-5 py-6 text-sm leading-6 text-gray-300">
               {responseMessage}
             </div>
           ) : (
-          <div className="flex flex-col gap-4">
-            {recommendations.map((rec, i) => (
-              <div key={i} className="bg-gray-900 rounded-lg p-6 text-white">
-                <div className="flex items-center gap-3 mb-1">
-                  <h3 className="text-xl font-semibold">
-                    {rec.product} — {rec.brand}
-                  </h3>
-                  <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full">
-                    Match #{rec.rank}
-                  </span>
-                </div>
-                <p className="text-gray-400 text-sm mb-2">{rec.form_factor}</p>
-                <p className="text-gray-300">{rec.notes}</p>
-                {rec.explanation && (
-                  <p className="text-blue-300 text-sm mt-3 italic">{rec.explanation}</p>
-                )}
-              </div>
-            ))}
-          </div>
+            <div className="flex flex-col gap-4">
+              {recommendations.map((rec, i) => (
+                <ProductCard
+                  key={i}
+                  product={rec.product}
+                  brand={rec.brand}
+                  form_factor={rec.form_factor}
+                  notes={rec.notes}
+                  rank={rec.rank}
+                  explanation={rec.explanation}
+                />
+              ))}
+            </div>
           )}
-          <div className="mt-6 pt-6 border-t border-gray-800">
+          <div className="mt-6 border-t border-gray-800 pt-6">
             {user ? (
               <div className="flex flex-col gap-3">
                 <input
                   type="text"
                   value={profileName}
                   onChange={(e) => setProfileName(e.target.value)}
-                  className="bg-gray-800 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                  className="w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-white outline-none transition focus:border-[#0076CE] focus:ring-2 focus:ring-[#0076CE]/20"
                 />
                 <button
                   onClick={handleSaveProfile}
                   disabled={saveStatus === "saving" || saveStatus === "saved"}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded cursor-pointer w-fit"
+                  className="w-fit cursor-pointer rounded-lg bg-[#0076CE] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#0067B3] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {saveStatus === "saving" ? "Saving..." : "Save Profile"}
                 </button>
                 {saveStatus === "saved" && (
-                  <p className="text-green-400 text-sm">Profile saved!</p>
+                  <p className="w-fit rounded-lg border border-green-900/60 bg-green-950/30 px-3 py-2 text-sm text-green-300">
+                    Profile saved!
+                  </p>
                 )}
                 {saveStatus === "error" && (
-                  <p className="text-red-400 text-sm">Failed to save. Try again.</p>
+                  <div className="rounded-lg border border-red-900/60 bg-red-950/30 px-3 py-3">
+                    <p className="text-sm leading-5 text-red-300">
+                      Failed to save. Try again.
+                    </p>
+                  </div>
                 )}
               </div>
             ) : (
-              <p className="text-gray-400 text-sm">
-                <Link to="/login" className="text-blue-400 hover:text-blue-300">
+              <p className="text-sm text-gray-400">
+                <Link
+                  to="/login"
+                  className="font-medium text-gray-200 underline decoration-gray-600 underline-offset-4 transition hover:text-white hover:decoration-gray-300"
+                >
                   Log in
                 </Link>{" "}
                 to save this profile
@@ -317,70 +319,79 @@ export default function AdvisorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 px-4 py-10">
-      <div className="max-w-xl mx-auto">
+    <div className="min-h-screen bg-gray-950 px-4 py-10 sm:py-12">
+      <div className="mx-auto max-w-xl">
         {mode === "nl" ? (
           <div>
-            <h1 className="text-white text-3xl font-bold mb-2">
-              Dell Workstation Advisor
+            <h1 className="text-2xl font-semibold tracking-tight text-white">
+              Workstation Advisor
             </h1>
-            <p className="text-gray-400 text-lg mb-6">
-              Describe your work and we'll recommend the right workstation
+            <p className="mb-6 mt-2 text-sm text-gray-400">
+              Describe your work. We'll find the right fit.
             </p>
             <textarea
               value={nlDescription}
               onChange={(e) => setNlDescription(e.target.value)}
               placeholder="e.g. I'm a mechanical engineer running FEA simulations for a mid-sized automotive team..."
               rows={4}
-              className="w-full bg-gray-800 border border-gray-600 rounded px-4 py-3 text-white focus:outline-none focus:border-blue-500 resize-none"
+              className="w-full resize-none rounded-xl border border-gray-700 bg-gray-950 px-4 py-3 text-sm text-white placeholder:text-gray-600 outline-none transition focus:border-[#0076CE] focus:ring-2 focus:ring-[#0076CE]/20"
             />
             <button
               onClick={handleNLSubmit}
               disabled={!nlDescription.trim() || nlLoading}
-              className="mt-4 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2 px-6 rounded cursor-pointer"
+              className="mt-4 h-11 cursor-pointer rounded-lg bg-[#0076CE] px-6 text-sm font-semibold text-white transition hover:bg-[#0067B3] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {nlLoading ? "Finding..." : "Find My Workstation"}
             </button>
-            {nlError && <p className="text-red-400 text-sm mt-3">{nlError}</p>}
-            <p className="text-gray-400 text-sm mt-6">
-              Prefer to browse by category?{" "}
-              <button
-                onClick={() => setMode("stepper")}
-                className="text-blue-400 hover:text-blue-300 cursor-pointer"
-              >
-                Use the step-by-step guide →
-              </button>
-            </p>
+            {nlError && (
+              <div className="mt-3 rounded-lg border border-red-900/60 bg-red-950/30 px-3 py-3">
+                <p className="text-sm leading-5 text-red-300">{nlError}</p>
+              </div>
+            )}
+            <button
+              onClick={() => setMode("stepper")}
+              className="mt-4 flex w-full cursor-pointer items-center justify-between rounded-xl border border-gray-800 bg-gray-900 px-4 py-3 text-left transition hover:border-gray-700 hover:bg-gray-800"
+            >
+              <span className="text-sm text-gray-300">
+                Prefer to browse by category? Use the step-by-step guide
+              </span>
+              <span className="shrink-0 pl-3 text-lg text-[#0076CE]">→</span>
+            </button>
           </div>
         ) : (
           <div>
-            <p className="text-gray-400 text-sm mb-3">
-              <button
-                onClick={() => setMode("nl")}
-                className="text-blue-400 hover:text-blue-300 cursor-pointer"
-              >
-                ← Describe your needs instead
-              </button>
-            </p>
-            <p className="text-gray-400 text-sm mb-2">
+            <button
+              onClick={() => setMode("nl")}
+              className="mb-4 flex w-full cursor-pointer items-center justify-between rounded-xl border border-gray-800 bg-gray-900 px-4 py-3 text-left transition hover:border-gray-700 hover:bg-gray-800"
+            >
+              <span className="text-sm text-gray-300">
+                Prefer to describe your needs instead? Switch to free-text input
+              </span>
+              <span className="shrink-0 pl-3 text-lg text-[#0076CE]">→</span>
+            </button>
+            <p className="mb-3 text-xs uppercase tracking-wide text-gray-500">
               Step {step} of 5 — {STEP_NAMES[step - 1]}
             </p>
-            <div className="w-full bg-gray-800 rounded-full h-1.5 mb-6">
+            <div className="mb-6 h-1 w-full rounded-full bg-gray-800">
               <div
-                className="bg-blue-500 h-1.5 rounded-full transition-all"
+                className="h-1 rounded-full bg-[#0076CE] transition-all"
                 style={{ width: `${(step / 5) * 100}%` }}
               />
             </div>
 
-            {error && <p className="text-red-400 text-sm mb-4">{error}</p>}
+            {error && (
+              <div className="mb-4 rounded-lg border border-red-900/60 bg-red-950/30 px-3 py-3">
+                <p className="text-sm leading-5 text-red-300">{error}</p>
+              </div>
+            )}
 
             <div className="flex flex-col gap-3">
               {getStepOptions().map((option) => (
                 <button
                   key={option.id}
                   onClick={() => handleCardClick(option)}
-                  className={`bg-gray-800 hover:bg-gray-700 text-white rounded p-4 w-full text-left cursor-pointer transition-colors ${
-                    selectedId === option.id ? "ring-2 ring-blue-500" : ""
+                  className={`w-full cursor-pointer rounded-xl border border-gray-800 bg-gray-900 p-4 text-left text-sm text-white transition-colors hover:border-gray-700 hover:bg-gray-800 ${
+                    selectedId === option.id ? "border-[#0076CE] ring-2 ring-[#0076CE]" : ""
                   }`}
                 >
                   {option.name}
@@ -391,7 +402,7 @@ export default function AdvisorPage() {
             {step > 1 && (
               <button
                 onClick={handleBack}
-                className="mt-6 text-gray-400 hover:text-white text-sm cursor-pointer"
+                className="mt-6 cursor-pointer text-sm text-gray-400 transition hover:text-white"
               >
                 ← Back
               </button>

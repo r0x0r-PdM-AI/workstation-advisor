@@ -91,22 +91,48 @@ export default function DashboardPage() {
   }
 
   if (loading) {
-    return <div className="p-6 text-white">Loading...</div>;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-950 px-4">
+        <p className="text-sm text-gray-400">Loading saved profiles…</p>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 px-4 py-8">
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl text-white font-semibold mb-6">Dashboard</h1>
+    <div className="min-h-screen bg-gray-950 px-4 py-10 sm:py-12">
+      <div className="mx-auto max-w-2xl">
+        <header className="mb-6">
+          <h1 className="text-2xl font-semibold tracking-tight text-white">
+            Dashboard
+          </h1>
+          <p className="mt-2 text-sm text-gray-400">
+            Your saved workload profiles
+          </p>
+        </header>
 
-        {error && <p className="text-sm text-red-400 mb-4">{error}</p>}
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-900/60 bg-red-950/30 px-3 py-3">
+            <p className="text-sm leading-5 text-red-300">{error}</p>
+          </div>
+        )}
 
         {profiles.length === 0 ? (
-          <p className="text-gray-300">
-            No saved profiles yet. <Link to="/" className="text-blue-400 hover:text-blue-300">Go to Advisor</Link>
-          </p>
+          <div className="rounded-2xl border border-gray-800 bg-gray-900 px-5 py-10 text-center sm:px-6">
+            <h2 className="text-base font-semibold text-white">
+              No saved profiles yet
+            </h2>
+            <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-gray-400">
+              Save a workload recommendation from the advisor to see it here.
+            </p>
+            <Link
+              to="/"
+              className="mt-5 inline-flex text-sm font-medium text-gray-200 underline decoration-gray-600 underline-offset-4 transition hover:text-white hover:decoration-gray-300"
+            >
+              Go to Advisor
+            </Link>
+          </div>
         ) : (
-          <div className="space-y-3">
+          <div className="flex flex-col gap-4">
             {profiles.map((profile) => (
               <ProfileCard
                 key={profile.id}
