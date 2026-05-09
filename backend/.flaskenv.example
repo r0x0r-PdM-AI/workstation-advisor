@@ -3,3 +3,4 @@ FLASK_DEBUG=1
 FLASK_RUN_PORT=5001
 DATABASE_URL=postgresql://localhost/your_database_name
 ANTHROPIC_API_KEY=your-anthropic-api-key-here
+SECRET_KEY=local-dev-secret-key-not-for-production

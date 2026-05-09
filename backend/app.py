@@ -23,8 +23,11 @@ from routes.products import products_bp
 
 def create_app():
     app = Flask(__name__)
-    CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
-    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
+    cors_origins = os.environ.get("CORS_ORIGIN", "http://localhost:5173").split(",")
+    CORS(app, origins=cors_origins, supports_credentials=True)
+    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
+    if not app.config["SECRET_KEY"]:
+        raise RuntimeError("SECRET_KEY environment variable is not set")
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 

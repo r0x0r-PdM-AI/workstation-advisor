@@ -81,7 +81,7 @@ def recommend():
 
 
 @recommend_bp.post("/recommend/natural")
-@limiter.limit("5 per hour")
+@limiter.limit("3 per hour")
 def recommend_natural():
     data = request.get_json(silent=True) or {}
     description = data.get("description")
@@ -91,6 +91,11 @@ def recommend_natural():
 
     if len(description.strip()) < 20:
         return jsonify({"error": "Please describe your work in more detail"}), 400
+
+    if len(description) > 2000:
+        return jsonify({
+            "error": "Description is too long. Please keep it under 2000 characters."
+        }), 400
 
     conn = get_db()
     cur = None
