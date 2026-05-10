@@ -29,7 +29,9 @@ def create_app():
     if not app.config["SECRET_KEY"]:
         raise RuntimeError("SECRET_KEY environment variable is not set")
     app.config["SESSION_COOKIE_HTTPONLY"] = True
-    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    app.config["SESSION_COOKIE_SAMESITE"] = "None"
+    app.config["SESSION_COOKIE_SECURE"] = True
+
 
     bcrypt.init_app(app)
     limiter.init_app(app)
