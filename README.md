@@ -35,7 +35,7 @@ Users can also register, sign in, and save workload profiles.
 ### 1) Backend
 
 ```bash
-cd /home/runner/work/workstation-advisor/workstation-advisor/backend
+cd backend
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -64,7 +64,7 @@ flask --app app.py run --port 5001
 ### 2) Frontend
 
 ```bash
-cd /home/runner/work/workstation-advisor/workstation-advisor/frontend
+cd frontend
 npm install
 cp .env.local.example .env.local
 ```
